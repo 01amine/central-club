@@ -45,7 +45,7 @@ class HomeLayout extends StatelessWidget {
                 width: 1,
               ),
               color: Colors.black87,
-              borderRadius: BorderRadius.circular(25),
+              borderRadius: BorderRadius.circular(100),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.3),
@@ -125,9 +125,8 @@ class HomeLayout extends StatelessWidget {
               ),
               child: SvgPicture.asset(
                 iconPath,
-                color: Colors.white,
-                width: 24,
-                height: 24,
+                width: 28,
+                height: 28,
               ),
             ),
           ),

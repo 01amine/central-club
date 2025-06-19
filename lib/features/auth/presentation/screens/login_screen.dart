@@ -33,7 +33,6 @@ class LoginScreen extends StatelessWidget {
                     height: context.width * 0.2,
                     fit: BoxFit.contain,
                   ),
-
                   Text(
                     "CONNECTER VOUS",
                     style: AppTheme.darkTheme.textTheme.displaySmall,
@@ -186,8 +185,7 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(
-                      height: context.height * 0.05), // Space at the bottom
+                  SizedBox(height: context.height * 0.4),
                 ],
               ),
             ),

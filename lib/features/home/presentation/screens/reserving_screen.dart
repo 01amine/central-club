@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:soccer_complex/core/constants/images.dart';
 import 'package:soccer_complex/core/extensions/extensions.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../reserve_field/domain/entities/field.dart';
+import '../../../reserve_field/presentation/screens/reserve_field_screen.dart';
 
 class ReservingScreen extends StatefulWidget {
   const ReservingScreen({super.key});
@@ -58,13 +59,20 @@ class _ReservingScreenState extends State<ReservingScreen>
     super.dispose();
   }
 
+  void _navigateToReserveField(Field fieldType) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ReserveFieldScreen(fieldType: fieldType),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.primaryColor,
       body: Stack(
         children: [
-          // Background image with overlay
           Positioned.fill(
             child: Stack(
               children: [
@@ -224,9 +232,7 @@ class _ReservingScreenState extends State<ReservingScreen>
             icon: AppImages.soccer_icon,
             title: "Central Soccer",
             subtitle: "Terrain de football professionnel",
-            onTap: () {
-              // Handle soccer selection
-            },
+            onTap: () => _navigateToReserveField(Field.soccer),
           ),
           SizedBox(height: context.height * 0.03),
           _buildSelectionButton(
@@ -234,9 +240,7 @@ class _ReservingScreenState extends State<ReservingScreen>
             icon: AppImages.padel_icon,
             title: "Central Padel",
             subtitle: "Court de padel moderne",
-            onTap: () {
-              // Handle padel selection
-            },
+            onTap: () => _navigateToReserveField(Field.padel),
           ),
         ],
       ),
@@ -291,10 +295,10 @@ class _ReservingScreenState extends State<ReservingScreen>
                   width: 1,
                 ),
               ),
-              child: SvgPicture.asset(
+              child: Image.asset(
                 icon,
-                height: context.height * 0.09,
-                width: context.height * 0.09,
+                height: context.height * 0.08,
+                width: context.height * 0.08,
               ),
             ),
 
@@ -313,6 +317,12 @@ class _ReservingScreenState extends State<ReservingScreen>
                         ),
                   ),
                   const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.secondaryTextColor,
+                        ),
+                  ),
                 ],
               ),
             ),

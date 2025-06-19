@@ -54,7 +54,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
     _pages = [
       OnboardingPage(
-        title: "Cental Club Sportif",
+        title: "Central Club Sportif",
         description:
             "Découvrez nos terrains de football aux normes internationales avec éclairage LED et pelouse synthétique de dernière génération.",
         assetPath: AppImages.onboarding1,
@@ -217,7 +217,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                     position: _slideAnimation,
                                     child: FadeTransition(
                                       opacity: _slideController,
-                                      child: SingleChildScrollView( // Added SingleChildScrollView here
+                                      child: SingleChildScrollView(
+                                        // Added SingleChildScrollView here
                                         child: _buildPageContent(),
                                       ),
                                     ),

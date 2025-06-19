@@ -4,9 +4,9 @@ class AppImages {
   static const String iconsPath = '$assetsPath/icons';
   static const String logo = '$iconsPath/logo_central.svg';
   static const String logo_png = "$iconsPath/logo_png.png";
-  static const String soccer_icon = '$iconsPath/ball_svg.svg';
+  static const String soccer_icon = '$imagesPath/ball_png.png';
   static const String settings_icon = '$iconsPath/settings_icon.svg';
-  static const String padel_icon = '$iconsPath/padel_svg.svg';
+  static const String padel_icon = '$imagesPath/padel_png.png';
   static const String lock_icon = '$iconsPath/lock_icon.svg';
   static const String infos_icon = '$iconsPath/infos_icon.svg';
   static const String hisoty_icon = '$iconsPath/historique_icon.svg';
