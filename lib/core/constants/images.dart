@@ -15,7 +15,7 @@ class AppImages {
   static const String eye_icon = '$iconsPath/eye_icon.svg';
   static const String disconnect_icon = '$iconsPath/disconnect_icon.svg';
   static const String home_icon = '$iconsPath/home_icon.svg';
-  static const String onboarding1 = '$imagesPath/onboarding1.png';
-  static const String onboarding2 = '$imagesPath/onboarding2.png';
-  static const String onboarding3 = '$imagesPath/onboarding3.png';
+  static const String onboarding1 = '$imagesPath/onboarding1.jpg';
+  static const String onboarding2 = '$imagesPath/onboarding2.jpeg';
+  static const String onboarding3 = '$imagesPath/onboarding3.jpg';
 }
