@@ -18,4 +18,7 @@ class AppImages {
   static const String onboarding1 = '$imagesPath/onboarding1.jpg';
   static const String onboarding2 = '$imagesPath/onboarding2.jpeg';
   static const String onboarding3 = '$imagesPath/onboarding3.jpg';
+  static const String home_background = '$imagesPath/background-home.jpg';
+  static const String auth_background = '$imagesPath/background-sign-up.jpg';
+  
 }

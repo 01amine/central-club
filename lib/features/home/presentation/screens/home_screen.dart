@@ -2,23 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:soccer_complex/core/constants/images.dart';
+import 'package:soccer_complex/features/home/presentation/screens/reserving_screen.dart';
 import '../cubit/bottom_navigation_cubit.dart';
 
 class HomeLayout extends StatelessWidget {
   final List<Widget> _pages = [
     Scaffold(
       body: Center(
-        child: Text("home screen"),
+        child: Text("history screen"),
       ),
     ),
+    ReservingScreen(),
     Scaffold(
       body: Center(
         child: Text("settings screen"),
-      ),
-    ),
-    Scaffold(
-      body: Center(
-        child: Text("history screen"),
       ),
     ),
   ];
@@ -33,38 +30,108 @@ class HomeLayout extends StatelessWidget {
           return _pages[state];
         },
       ),
+      extendBody: true,
       bottomNavigationBar: BlocBuilder<BottomNavigationCubit, int>(
         builder: (context, state) {
-          return BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            currentIndex: state,
-            onTap: (index) {
-              context.read<BottomNavigationCubit>().changeTab(index);
-            },
-            selectedItemColor: Colors.black,
-            unselectedItemColor: Colors.grey,
-            items: [
-              BottomNavigationBarItem(
-                icon: SvgPicture.asset(
-                  AppImages.hisoty_icon,
-                  color: state == 0 ? Colors.black : Colors.grey,
+          return Container(
+            margin: const EdgeInsets.only(
+              left: 20,
+              right: 20,
+              bottom: 25,
+            ),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.white,
+                width: 1,
+              ),
+              color: Colors.black87,
+              borderRadius: BorderRadius.circular(25),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(25),
+              child: SizedBox(
+                height: 70,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildNavItem(
+                      context,
+                      index: 0,
+                      currentIndex: state,
+                      iconPath: AppImages.hisoty_icon,
+                      label: 'history',
+                    ),
+                    _buildNavItem(
+                      context,
+                      index: 1,
+                      currentIndex: state,
+                      iconPath: AppImages.home_icon,
+                      label: 'home',
+                    ),
+                    _buildNavItem(
+                      context,
+                      index: 2,
+                      currentIndex: state,
+                      iconPath: AppImages.settings_icon,
+                      label: 'settings',
+                    ),
+                  ],
                 ),
               ),
-              BottomNavigationBarItem(
-                icon: SvgPicture.asset(
-                  AppImages.home_icon,
-                  color: state == 1 ? Colors.black : Colors.grey,
-                ),
-              ),
-              BottomNavigationBarItem(
-                icon: SvgPicture.asset(
-                  AppImages.settings_icon,
-                  color: state == 2 ? Colors.black : Colors.grey,
-                ),
-              ),
-            ],
+            ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildNavItem(
+    BuildContext context, {
+    required int index,
+    required int currentIndex,
+    required String iconPath,
+    required String label,
+  }) {
+    final isSelected = currentIndex == index;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          context.read<BottomNavigationCubit>().changeTab(index);
+        },
+        child: SizedBox(
+          height: 70,
+          child: Center(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: isSelected ? Colors.white : Colors.transparent,
+                  width: 0.4,
+                ),
+                color: isSelected
+                    ? Colors.grey.withOpacity(0.3)
+                    : Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+              child: SvgPicture.asset(
+                iconPath,
+                color: Colors.white,
+                width: 24,
+                height: 24,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

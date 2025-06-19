@@ -15,16 +15,16 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       : super(OnboardingInitial()) {
     on<CheckOnboarding>((event, emit) async {
       emit(OnboardingLoading());
-      final seen = await getSeen(); 
+      final seen = await getSeen();
       if (seen) {
-        emit(OnboardingComplete());
+        emit(const OnboardingComplete(route: '/login')); 
       } else {
         emit(OnboardingRequired());
       }
     });
     on<CompleteOnboarding>((event, emit) async {
       await saveSeen();
-      emit(OnboardingComplete());
+      emit(const OnboardingComplete(route: '/login')); 
     });
   }
 }

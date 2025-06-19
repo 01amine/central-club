@@ -101,9 +101,9 @@ class _SplashScreenState extends State<SplashScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF0A0A0A), // Slightly lighter at top
-              Color(0xFF1A1A1A), // Primary dark color
-              Color(0xFF000000), // Pure black at bottom
+              Color(0xFF0A0A0A),
+              Color(0xFF1A1A1A),
+              Color(0xFF000000),
             ],
           ),
         ),
@@ -161,7 +161,9 @@ class _SplashScreenState extends State<SplashScreen>
                                 AppImages.logo,
                                 width: context.width * 0.6,
                                 height: context.width * 0.6,
-                                color: Colors.white,
+                                colorFilter: const ColorFilter.mode(
+                                    Colors.white, BlendMode.srcIn),
+                                fit: BoxFit.contain,
                               ),
                             );
                           },
