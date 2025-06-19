@@ -134,20 +134,11 @@ class _ReservingScreenState extends State<ReservingScreen>
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         // Logo
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppTheme.cardColor.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppTheme.borderColor,
-              width: 1,
-            ),
-          ),
-          child: SvgPicture.asset(
-            AppImages.logo,
-            height: 40,
-          ),
+        Image.asset(
+          AppImages.logo_png,
+          width: context.width * 0.2,
+          height: context.width * 0.2,
+          fit: BoxFit.contain,
         ),
 
         // Profile avatar

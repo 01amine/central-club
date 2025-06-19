@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:soccer_complex/core/extensions/extensions.dart';
 
 import '../../../../core/constants/images.dart';
@@ -157,12 +156,10 @@ class _SplashScreenState extends State<SplashScreen>
                                   ),
                                 ],
                               ),
-                              child: SvgPicture.asset(
-                                AppImages.logo,
+                              child: Image.asset(
+                                AppImages.logo_png,
                                 width: context.width * 0.6,
                                 height: context.width * 0.6,
-                                colorFilter: const ColorFilter.mode(
-                                    Colors.white, BlendMode.srcIn),
                                 fit: BoxFit.contain,
                               ),
                             );
