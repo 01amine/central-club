@@ -37,7 +37,7 @@ class MyTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppTheme.buttonColor, width: 2),
+          borderSide: BorderSide(color: AppTheme.primaryTextColor, width: 2.5),
         ),
         contentPadding:
             const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
