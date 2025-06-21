@@ -118,7 +118,7 @@ class _ReservingScreenState extends State<ReservingScreen>
                       // Title and subtitle
                       _buildTitleSection(context),
 
-                      SizedBox(height: context.height * 0.06),
+                      SizedBox(height: context.height * 0.03),
 
                       // Selection buttons
                       Expanded(

@@ -5,6 +5,7 @@ import 'package:soccer_complex/features/auth/presentation/screens/signup_screen.
 //import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'di/injection_container.dart' as di;
 import 'core/theme/theme.dart';
+import 'features/history/presentation/pages/details_screen.dart';
 import 'features/home/presentation/cubit/bottom_navigation_cubit.dart';
 import 'features/home/presentation/screens/home_screen.dart';
 import 'features/onboarding/presentation/bloc/onboarding_bloc.dart';
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
             create: (_) => BottomNavigationCubit(), child: HomeLayout()),
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
+        '/history_details': (context) => const HistoryDetailsScreen(),
       },
     );
   }

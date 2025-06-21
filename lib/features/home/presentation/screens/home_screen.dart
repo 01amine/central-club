@@ -2,16 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:soccer_complex/core/constants/images.dart';
+import 'package:soccer_complex/features/history/presentation/pages/history_screen.dart';
 import 'package:soccer_complex/features/home/presentation/screens/reserving_screen.dart';
 import '../cubit/bottom_navigation_cubit.dart';
 
 class HomeLayout extends StatelessWidget {
   final List<Widget> _pages = [
-    Scaffold(
-      body: Center(
-        child: Text("history screen"),
-      ),
-    ),
+    HistoryScreen(),
     ReservingScreen(),
     Scaffold(
       body: Center(
