@@ -5,8 +5,8 @@ import '../../../../core/theme/theme.dart';
 class MyTextField extends StatelessWidget {
   final String hintText;
   final TextEditingController? controller;
-  final TextInputType? keyboardType; 
-  final bool obscureText; 
+  final TextInputType? keyboardType;
+  final bool obscureText;
 
   MyTextField({
     super.key,
@@ -20,8 +20,8 @@ class MyTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
-      obscureText: obscureText, 
-      keyboardType: keyboardType, 
+      obscureText: obscureText,
+      keyboardType: keyboardType,
       style: AppTheme.darkTheme.textTheme.bodyMedium,
       decoration: InputDecoration(
         hintText: hintText,
@@ -29,17 +29,18 @@ class MyTextField extends StatelessWidget {
         fillColor: AppTheme.accentColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none, 
+          borderSide: BorderSide(color: AppTheme.primaryTextColor, width: 1),
         ),
-        enabledBorder: OutlineInputBorder( 
+        enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: AppTheme.primaryTextColor, width: 1),
         ),
-        focusedBorder: OutlineInputBorder( 
+        focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: AppTheme.buttonColor, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
       ),
     );
   }
