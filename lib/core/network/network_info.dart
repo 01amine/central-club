@@ -10,7 +10,7 @@ class NetworkInfoImpl implements NetworkInfo {
   final Connectivity connectivity;
   final InternetConnection  connectionChecker;
 
-  NetworkInfoImpl({
+  NetworkInfoImpl(Object object, {
     required this.connectivity,
     required this.connectionChecker,
   });

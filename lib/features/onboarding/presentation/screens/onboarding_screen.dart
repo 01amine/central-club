@@ -117,7 +117,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     return BlocListener<OnboardingBloc, OnboardingState>(
       listener: (context, state) {
         if (state is OnboardingComplete) {
-          Navigator.of(context).pushReplacementNamed('/home');
+          Navigator.of(context).pushReplacementNamed('/login');
         }
       },
       child: Scaffold(

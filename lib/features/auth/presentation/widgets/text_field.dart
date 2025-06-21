@@ -1,17 +1,27 @@
-// ignore_for_file: must_be_immutable
-
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/theme.dart';
 
 class MyTextField extends StatelessWidget {
-  String hintText;
-  MyTextField({super.key, required this.hintText});
+  final String hintText;
+  final TextEditingController? controller;
+  final TextInputType? keyboardType; 
+  final bool obscureText; 
+
+  MyTextField({
+    super.key,
+    required this.hintText,
+    this.controller,
+    this.keyboardType,
+    this.obscureText = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
-      obscureText: true,
+      controller: controller,
+      obscureText: obscureText, 
+      keyboardType: keyboardType, 
       style: AppTheme.darkTheme.textTheme.bodyMedium,
       decoration: InputDecoration(
         hintText: hintText,
@@ -19,8 +29,17 @@ class MyTextField extends StatelessWidget {
         fillColor: AppTheme.accentColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none, 
         ),
-        contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+        enabledBorder: OutlineInputBorder( 
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder( 
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: AppTheme.buttonColor, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
       ),
     );
   }

@@ -1,13 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:soccer_complex/core/constants/images.dart';
 import 'package:soccer_complex/core/extensions/extensions.dart';
 import 'package:soccer_complex/features/auth/presentation/widgets/text_field.dart';
+import 'package:soccer_complex/features/auth/presentation/bloc/auth_bloc.dart'; // Import AuthBloc
 
 import '../../../../core/theme/theme.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,49 +64,79 @@ class LoginScreen extends StatelessWidget {
                           style: AppTheme.darkTheme.textTheme.titleMedium,
                         ),
                         SizedBox(height: context.height * 0.01),
-                        MyTextField(hintText: "Entrer votre email..."),
+                        MyTextField(
+                          hintText: "Entrer votre email...",
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          obscureText: false,
+                        ),
                         SizedBox(height: context.height * 0.03),
                         Text(
                           "Mot de passe",
                           style: AppTheme.darkTheme.textTheme.titleMedium,
                         ),
                         SizedBox(height: context.height * 0.01),
-                        MyTextField(hintText: "Entrer votre mot de passe..."),
+                        MyTextField(
+                          hintText: "Entrer votre mot de passe...",
+                          controller: _passwordController,
+                          obscureText: true,
+                        ),
                       ],
                     ),
                   ),
                   SizedBox(height: context.height * 0.04),
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: MaterialButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/home');
-                      },
-                      color: AppTheme.buttonColor, // Using theme's buttonColor
-                      minWidth: double.infinity,
-                      padding: EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        "CONTINUER",
-                        style:
-                            AppTheme.darkTheme.textTheme.labelLarge!.copyWith(
-                          color: AppTheme.primaryTextColor, // Button text color
+                  BlocConsumer<AuthBloc, AuthState>(
+                    listener: (context, state) {
+                      if (state is AuthSuccess) {
+                        Navigator.of(context).pushReplacementNamed('/home');
+                      } else if (state is AuthError) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(state.message)),
+                        );
+                      }
+                    },
+                    builder: (context, state) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ),
-                    ),
+                        child: MaterialButton(
+                          onPressed: state is AuthLoading
+                              ? null
+                              : () {
+                                  context.read<AuthBloc>().add(
+                                        LoginRequested(
+                                          email: _emailController.text,
+                                          password: _passwordController.text,
+                                        ),
+                                      );
+                                },
+                          color: AppTheme.buttonColor,
+                          minWidth: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: state is AuthLoading
+                              ? const CircularProgressIndicator(
+                                  color: AppTheme.primaryTextColor)
+                              : Text(
+                                  "CONTINUER",
+                                  style: AppTheme
+                                      .darkTheme.textTheme.labelLarge!
+                                      .copyWith(
+                                    color: AppTheme.primaryTextColor,
+                                  ),
+                                ),
+                        ),
+                      );
+                    },
                   ),
                   SizedBox(height: context.height * 0.04),
                   Row(
                     children: [
-                      Expanded(
-                          child: Divider(
-                              color: AppTheme
-                                  .borderColor)), // Using theme's borderColor
+                      Expanded(child: Divider(color: AppTheme.borderColor)),
                       Padding(
                         padding: EdgeInsets.symmetric(
                             horizontal: context.width * 0.03),
@@ -104,11 +151,11 @@ class LoginScreen extends StatelessWidget {
                   SizedBox(height: context.height * 0.04),
                   MaterialButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/home');
+                      // Handle Google Login (Backend initiated)
                     },
                     color: AppTheme.secondaryColor,
                     minWidth: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 15),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                       side: BorderSide(color: AppTheme.borderColor),
@@ -124,8 +171,7 @@ class LoginScreen extends StatelessWidget {
                         SizedBox(width: context.width * 0.02),
                         Text(
                           "Continuer avec Google",
-                          style: AppTheme.darkTheme.textTheme
-                              .labelLarge, // Using theme's labelLarge
+                          style: AppTheme.darkTheme.textTheme.labelLarge,
                         ),
                       ],
                     ),
@@ -133,17 +179,14 @@ class LoginScreen extends StatelessWidget {
                   SizedBox(height: context.height * 0.02),
                   MaterialButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/home');
+                      // Handle Facebook Login (Backend initiated)
                     },
-                    color: AppTheme
-                        .secondaryColor, // Using secondaryColor for social buttons background
+                    color: AppTheme.secondaryColor,
                     minWidth: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 15),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(
-                          color: AppTheme
-                              .borderColor), // Border for social buttons
+                      side: BorderSide(color: AppTheme.borderColor),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -156,8 +199,7 @@ class LoginScreen extends StatelessWidget {
                         SizedBox(width: context.width * 0.02),
                         Text(
                           "Continuer avec Facebook",
-                          style: AppTheme.darkTheme.textTheme
-                              .labelLarge, // Using theme's labelLarge
+                          style: AppTheme.darkTheme.textTheme.labelLarge,
                         ),
                       ],
                     ),
@@ -168,8 +210,7 @@ class LoginScreen extends StatelessWidget {
                     children: [
                       Text(
                         "Vous n'avez pas de compte ? ",
-                        style: AppTheme.darkTheme.textTheme
-                            .bodyMedium, // Using theme's bodyMedium
+                        style: AppTheme.darkTheme.textTheme.bodyMedium,
                       ),
                       GestureDetector(
                         onTap: () {

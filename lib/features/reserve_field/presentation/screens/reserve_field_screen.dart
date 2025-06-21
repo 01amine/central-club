@@ -157,8 +157,7 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
                         ),
                         child: Padding(
                           padding: EdgeInsets.symmetric(
-                            horizontal:
-                                context.width * 0.05,
+                            horizontal: context.width * 0.05,
                             vertical: 20,
                           ),
                           child: Column(
@@ -166,37 +165,27 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
                               // Header
                               _buildHeader(context),
 
-                              SizedBox(
-                                  height: context.height *
-                                      0.02),
+                              SizedBox(height: context.height * 0.02),
 
                               // Title
                               _buildTitle(),
 
-                              SizedBox(
-                                  height: context.height *
-                                      0.025),
+                              SizedBox(height: context.height * 0.025),
 
                               // Field selection wheel
                               _buildFieldSection(context),
 
-                              SizedBox(
-                                  height: context.height *
-                                      0.02),
+                              SizedBox(height: context.height * 0.02),
 
                               // Date selection
                               _buildDateSection(context),
 
-                              SizedBox(
-                                  height: context.height *
-                                      0.02),
+                              SizedBox(height: context.height * 0.02),
 
                               // Time selection
                               _buildTimeSection(context),
 
-                              SizedBox(
-                                  height: context.height *
-                                      0.04),
+                              SizedBox(height: context.height * 0.04),
 
                               // Reserve button
                               _buildReserveButton(context),
@@ -549,7 +538,7 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
               return GestureDetector(
                 onTap: () => _selectDate(dateSlot.fullDate),
                 child: Container(
-                  margin: const EdgeInsets.only(right: 12),
+                  margin: EdgeInsets.only(right: context.width * 0.02),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
@@ -566,7 +555,7 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
                       color: isSelected
                           ? AppTheme.borderColor
                           : AppTheme.borderColor.withOpacity(0.3),
-                      width: isSelected ? 2 : 1,
+                      width: 1,
                     ),
                   ),
                   child: Column(

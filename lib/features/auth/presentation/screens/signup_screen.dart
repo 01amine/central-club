@@ -1,12 +1,72 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:soccer_complex/core/constants/images.dart';
 import 'package:soccer_complex/core/extensions/extensions.dart';
 import 'package:soccer_complex/features/auth/presentation/widgets/text_field.dart';
 
-import '../../../../core/theme/theme.dart';
 
-class SignupScreen extends StatelessWidget {
+import '../../../../core/theme/theme.dart';
+import '../bloc/auth_bloc.dart'; 
+
+class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
+
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _birthdayController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  DateTime? _selectedDate;
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _birthdayController.dispose();
+    _phoneNumberController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: AppTheme.darkTheme.copyWith(
+            colorScheme: ColorScheme.dark(
+              primary: AppTheme.buttonColor,
+              onPrimary: AppTheme.primaryTextColor,
+              onSurface: AppTheme.primaryTextColor,
+              surface: AppTheme.secondaryColor,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.primaryTextColor,
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+        _birthdayController.text = DateFormat('dd / MM / yyyy').format(picked);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +107,12 @@ class SignupScreen extends StatelessWidget {
                           style: AppTheme.darkTheme.textTheme.titleMedium,
                         ),
                         SizedBox(height: context.height * 0.01),
-                        MyTextField(hintText: "Entrer votre nom complet..."),
+                        MyTextField(
+                          hintText: "Entrer votre nom complet...",
+                          controller: _fullNameController,
+                          keyboardType: TextInputType.name,
+                          obscureText: false,
+                        ),
                         SizedBox(height: context.height * 0.03),
 
                         // Date of Birth Field
@@ -67,33 +132,8 @@ class SignupScreen extends StatelessWidget {
                           child: TextField(
                             style: AppTheme.darkTheme.textTheme.bodyMedium,
                             readOnly: true,
-                            onTap: () async {
-                              await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(1900),
-                                lastDate: DateTime.now(),
-                                builder: (context, child) {
-                                  return Theme(
-                                    data: AppTheme.darkTheme.copyWith(
-                                      colorScheme: ColorScheme.dark(
-                                        primary: AppTheme.buttonColor,
-                                        onPrimary: AppTheme.primaryTextColor,
-                                        onSurface: AppTheme.primaryTextColor,
-                                        surface: AppTheme.secondaryColor,
-                                      ),
-                                      textButtonTheme: TextButtonThemeData(
-                                        style: TextButton.styleFrom(
-                                          foregroundColor:
-                                              AppTheme.primaryTextColor,
-                                        ),
-                                      ),
-                                    ),
-                                    child: child!,
-                                  );
-                                },
-                              );
-                            },
+                            controller: _birthdayController,
+                            onTap: () => _selectDate(context),
                             decoration: InputDecoration(
                               hintText: "JJ / MM / AAAA",
                               hintStyle:
@@ -106,10 +146,9 @@ class SignupScreen extends StatelessWidget {
                               ),
                               suffixIcon: Icon(
                                 Icons.calendar_today,
-                                color: AppTheme
-                                    .secondaryTextColor, // Calendar icon color
+                                color: AppTheme.secondaryTextColor,
                               ),
-                              contentPadding: EdgeInsets.symmetric(
+                              contentPadding: const EdgeInsets.symmetric(
                                   vertical: 15, horizontal: 15),
                             ),
                           ),
@@ -123,7 +162,11 @@ class SignupScreen extends StatelessWidget {
                         ),
                         SizedBox(height: context.height * 0.01),
                         MyTextField(
-                            hintText: "Entrer votre numéro de téléphone..."),
+                          hintText: "Entrer votre numéro de téléphone...",
+                          controller: _phoneNumberController,
+                          keyboardType: TextInputType.phone,
+                          obscureText: false,
+                        ),
                         SizedBox(height: context.height * 0.03),
 
                         // Email Field
@@ -132,7 +175,12 @@ class SignupScreen extends StatelessWidget {
                           style: AppTheme.darkTheme.textTheme.titleMedium,
                         ),
                         SizedBox(height: context.height * 0.01),
-                        MyTextField(hintText: "Entrer votre email..."),
+                        MyTextField(
+                          hintText: "Entrer votre email...",
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          obscureText: false,
+                        ),
                         SizedBox(height: context.height * 0.03),
 
                         // Password Field
@@ -141,35 +189,63 @@ class SignupScreen extends StatelessWidget {
                           style: AppTheme.darkTheme.textTheme.titleMedium,
                         ),
                         SizedBox(height: context.height * 0.01),
-                        MyTextField(hintText: "Entrer votre mot de passe..."),
+                        MyTextField(
+                          hintText: "Entrer votre mot de passe...",
+                          controller: _passwordController,
+                          obscureText: true,
+                        ),
                       ],
                     ),
                   ),
                   SizedBox(height: context.height * 0.04),
 
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: MaterialButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/home');
-                      },
-                      color: AppTheme.buttonColor,
-                      minWidth: double.infinity,
-                      padding: EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        "CREER COMPTE",
-                        style:
-                            AppTheme.darkTheme.textTheme.labelLarge!.copyWith(
-                          color: AppTheme.primaryTextColor,
+                  BlocConsumer<AuthBloc, AuthState>(
+                    listener: (context, state) {
+                      if (state is AuthSuccess) {
+                        Navigator.of(context).pushReplacementNamed('/home');
+                      } else if (state is AuthError) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(state.message)),
+                        );
+                      }
+                    },
+                    builder: (context, state) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ),
-                    ),
+                        child: MaterialButton(
+                          onPressed: state is AuthLoading
+                              ? null
+                              : () {
+                                  context.read<AuthBloc>().add(
+                                        SignupRequested(
+                                          fullName: _fullNameController.text,
+                                          birthday: _birthdayController.text,
+                                          phoneNumber: _phoneNumberController.text,
+                                          email: _emailController.text,
+                                          password: _passwordController.text,
+                                        ),
+                                      );
+                                },
+                          color: AppTheme.buttonColor,
+                          minWidth: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: state is AuthLoading
+                              ? const CircularProgressIndicator(color: AppTheme.primaryTextColor)
+                              : Text(
+                                  "CREER COMPTE",
+                                  style: AppTheme.darkTheme.textTheme.labelLarge!.copyWith(
+                                    color: AppTheme.primaryTextColor,
+                                  ),
+                                ),
+                        ),
+                      );
+                    },
                   ),
                   SizedBox(height: context.height * 0.05),
 
