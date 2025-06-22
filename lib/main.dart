@@ -15,6 +15,7 @@ import 'features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'features/reserve_field/domain/entities/field.dart';
 import 'features/reserve_field/presentation/bloc/field_reservation_bloc.dart';
 import 'features/reserve_field/presentation/screens/reserve_field_screen.dart';
+import 'features/settings/presentation/pages/settings_screen.dart';
 import 'features/splash/presentation/bloc/splash_bloc.dart';
 import 'features/splash/presentation/pages/splash_screen.dart';
 
@@ -72,6 +73,7 @@ class MyApp extends StatelessWidget {
 
             return ReserveFieldScreen(fieldType: args!);
           },
+          '/settings': (context) => const SettingsScreen(),
         },
       ),
     );

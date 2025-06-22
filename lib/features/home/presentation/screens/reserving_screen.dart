@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:soccer_complex/core/constants/images.dart';
 import 'package:soccer_complex/core/extensions/extensions.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../reserve_field/domain/entities/field.dart';
+import '../cubit/bottom_navigation_cubit.dart';
 
 class ReservingScreen extends StatefulWidget {
   const ReservingScreen({super.key});
@@ -61,7 +63,7 @@ class _ReservingScreenState extends State<ReservingScreen>
   void _navigateToReserveField(Field fieldType) {
     Navigator.of(context).pushNamed(
       '/reserve_field',
-      arguments: fieldType, // Pass the fieldType as arguments
+      arguments: fieldType,
     );
   }
 
@@ -150,7 +152,7 @@ class _ReservingScreenState extends State<ReservingScreen>
         // Profile avatar
         GestureDetector(
           onTap: () {
-            // Handle profile tap
+            context.read<BottomNavigationCubit>().changeTab(2);
           },
           child: Container(
             decoration: BoxDecoration(
