@@ -24,7 +24,7 @@ extension FieldExtension on Field {
   }
 }
 
-// time_slot.dart
+
 class TimeSlot {
   final String time;
   final bool isSelected;

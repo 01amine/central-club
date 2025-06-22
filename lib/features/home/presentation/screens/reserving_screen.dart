@@ -3,7 +3,6 @@ import 'package:soccer_complex/core/constants/images.dart';
 import 'package:soccer_complex/core/extensions/extensions.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../reserve_field/domain/entities/field.dart';
-import '../../../reserve_field/presentation/screens/reserve_field_screen.dart';
 
 class ReservingScreen extends StatefulWidget {
   const ReservingScreen({super.key});
@@ -60,10 +59,9 @@ class _ReservingScreenState extends State<ReservingScreen>
   }
 
   void _navigateToReserveField(Field fieldType) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ReserveFieldScreen(fieldType: fieldType),
-      ),
+    Navigator.of(context).pushNamed(
+      '/reserve_field',
+      arguments: fieldType, // Pass the fieldType as arguments
     );
   }
 

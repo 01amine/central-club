@@ -148,13 +148,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(height: context.height * 0.04),
                     BlocConsumer<AuthBloc, AuthState>(
                       listener: (context, state) {
-                        if (state is AuthSuccess) {
-                          Navigator.of(context).pushReplacementNamed('/home');
-                        } else if (state is AuthError) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(state.message)),
-                          );
-                        }
+                        Navigator.of(context).pushReplacementNamed('/home');
+                        // if (state is AuthSuccess) {
+                        //   Navigator.of(context).pushReplacementNamed('/home');
+                        // } else if (state is AuthError) {
+                        //   ScaffoldMessenger.of(context).showSnackBar(
+                        //     SnackBar(content: Text(state.message)),
+                        //   );
+                        // }
                       },
                       builder: (context, state) {
                         return Container(
@@ -163,7 +164,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: MaterialButton(
-                            onPressed: state is AuthLoading ? null : _handleLogin,
+                            onPressed:
+                                state is AuthLoading ? null : _handleLogin,
                             color: AppTheme.buttonColor,
                             minWidth: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 15),

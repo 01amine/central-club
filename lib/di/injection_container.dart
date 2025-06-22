@@ -22,13 +22,21 @@ import '../features/onboarding/domain/repositories/onboarding_repository.dart';
 import '../features/onboarding/domain/usecases/get_onboarding_seen.dart';
 import '../features/onboarding/domain/usecases/save_onboarding_seen.dart';
 import '../features/onboarding/presentation/bloc/onboarding_bloc.dart';
+import '../features/reserve_field/data/datasource/field_local_datasource.dart';
+import '../features/reserve_field/data/datasource/field_remote_datasource.dart';
+import '../features/reserve_field/data/repository/field_repository_impl.dart';
+import '../features/reserve_field/domain/repositories/field_repository.dart';
+import '../features/reserve_field/domain/usecase/cancel_reservation.dart';
+import '../features/reserve_field/domain/usecase/get_field_schedule.dart';
+import '../features/reserve_field/domain/usecase/get_user_reservations.dart';
+import '../features/reserve_field/domain/usecase/make_reservation.dart';
+import '../features/reserve_field/presentation/bloc/field_reservation_bloc.dart';
 import '../features/splash/domain/is_user_loged_in.dart';
 import '../features/splash/presentation/bloc/splash_bloc.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
-  // Reset GetIt to avoid duplicate registration errors
   await sl.reset();
 
   // External dependencies
@@ -89,6 +97,34 @@ Future<void> init() async {
     () => IsUserLoggedIn(sl<AuthRepository>()),
   );
 
+  // Field Reservation Data Sources
+  sl.registerLazySingleton<FieldRemoteDataSource>(
+    () => FieldRemoteDataSourceImpl(
+        client: sl<http.Client>(), baseUrl: EndPoints.baseUrl),
+  );
+  sl.registerLazySingleton<FieldLocalDataSource>(
+    () => FieldLocalDataSourceImpl(sharedPreferences: sl<SharedPreferences>()),
+  );
+
+  // Field Reservation Repository
+  sl.registerLazySingleton<FieldRepository>(
+    () => FieldRepositoryImpl(
+      remoteDataSource: sl<FieldRemoteDataSource>(),
+      localDataSource: sl<FieldLocalDataSource>(),
+      networkInfo: sl<NetworkInfo>(),
+    ),
+  );
+
+  // Field Reservation Use Cases
+  sl.registerLazySingleton<GetFieldSchedules>(
+      () => GetFieldSchedules(sl<FieldRepository>()));
+  sl.registerLazySingleton<MakeReservation>(
+      () => MakeReservation(sl<FieldRepository>()));
+  sl.registerLazySingleton<GetUserReservations>(
+      () => GetUserReservations(sl<FieldRepository>()));
+  sl.registerLazySingleton<CancelReservation>(
+      () => CancelReservation(sl<FieldRepository>()));
+
   // BLoCs
   sl.registerFactory<AuthBloc>(
     () => AuthBloc(
@@ -109,6 +145,15 @@ Future<void> init() async {
     () => SplashBloc(
       getOnboardingSeen: sl<GetOnboardingSeen>(),
       isUserLoggedIn: sl<IsUserLoggedIn>(),
+    ),
+  );
+
+  sl.registerFactory<FieldReservationBloc>(
+    () => FieldReservationBloc(
+      getFieldSchedules: sl<GetFieldSchedules>(),
+      makeReservation: sl<MakeReservation>(),
+      getUserReservations: sl<GetUserReservations>(),
+      cancelReservation: sl<CancelReservation>(),
     ),
   );
 }

@@ -12,6 +12,9 @@ import 'features/home/presentation/cubit/bottom_navigation_cubit.dart';
 import 'features/home/presentation/screens/home_screen.dart';
 import 'features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'features/reserve_field/domain/entities/field.dart';
+import 'features/reserve_field/presentation/bloc/field_reservation_bloc.dart';
+import 'features/reserve_field/presentation/screens/reserve_field_screen.dart';
 import 'features/splash/presentation/bloc/splash_bloc.dart';
 import 'features/splash/presentation/pages/splash_screen.dart';
 
@@ -45,6 +48,9 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (_) => BottomNavigationCubit(),
         ),
+        BlocProvider(
+          create: (_) => di.sl<FieldReservationBloc>(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -61,6 +67,11 @@ class MyApp extends StatelessWidget {
           '/login': (context) => const LoginScreen(),
           '/signup': (context) => const SignupScreen(),
           '/history_details': (context) => const HistoryDetailsScreen(),
+          '/reserve_field': (context) {
+            final args = ModalRoute.of(context)?.settings.arguments as Field?;
+
+            return ReserveFieldScreen(fieldType: args!);
+          },
         },
       ),
     );

@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart'; // Added import
 import 'package:soccer_complex/core/constants/images.dart';
 import 'package:soccer_complex/core/extensions/extensions.dart';
 import '../../../../core/theme/theme.dart';
 import '../../domain/entities/field.dart';
+import '../../domain/entities/available_date.dart'; // Added import
+import '../../domain/entities/available_time_slot.dart'; // Added import
+import '../../domain/entities/field_schedule.dart'; // Added import
+import '../../domain/entities/reservation_request.dart'; // Added import
+import '../bloc/field_reservation_bloc.dart'; // Added import
+import '../bloc/field_reservation_event.dart'; // Added import
+import '../bloc/field_reservation_state.dart'; // Added import
 
 class ReserveFieldScreen extends StatefulWidget {
   final Field fieldType;
@@ -23,11 +31,12 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  List<TimeSlot> timeSlots = [];
-  List<DateSlot> dateSlots = getDateSlots();
+  List<FieldSchedule> fieldSchedules = []; // Changed from timeSlots/dateSlots
   int selectedFieldIndex = 0;
-  String? selectedTime;
+  String? selectedTimeSlotId; // Changed from selectedTime
   String? selectedDate;
+  AvailableTimeSlot? selectedTimeSlot; // New variable
+  FieldSchedule? selectedField; // New variable
 
   final PageController _fieldPageController = PageController(
     viewportFraction: 0.7,
@@ -36,6 +45,11 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
   @override
   void initState() {
     super.initState();
+    _initializeAnimations(); // Changed initialization
+    _loadFieldSchedules(); // New function call
+  }
+
+  void _initializeAnimations() {
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -63,19 +77,12 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
 
     _fadeController.forward();
     _slideController.forward();
+  }
 
-    timeSlots = getTimeSlots();
-
-    selectedTime = '9:30';
-    selectedDate = dateSlots.first.fullDate;
-
-    timeSlots = timeSlots.map((slot) {
-      return slot.copyWith(isSelected: slot.time == selectedTime);
-    }).toList();
-
-    dateSlots = dateSlots.map((slot) {
-      return slot.copyWith(isSelected: slot.fullDate == selectedDate);
-    }).toList();
+  void _loadFieldSchedules() {
+    context.read<FieldReservationBloc>().add(
+          LoadFieldSchedules(fieldType: widget.fieldType.name),
+        );
   }
 
   @override
@@ -86,37 +93,206 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
     super.dispose();
   }
 
-  void _selectTime(String time) {
-    setState(() {
-      selectedTime = time;
-      timeSlots = timeSlots.map((slot) {
-        return slot.copyWith(isSelected: slot.time == time);
-      }).toList();
-    });
+  void _selectField(int index) {
+    if (index < fieldSchedules.length) {
+      setState(() {
+        selectedFieldIndex = index;
+        selectedField = fieldSchedules[index];
+        // Reset selections when field changes
+        selectedDate = null;
+        selectedTimeSlotId = null;
+        selectedTimeSlot = null;
+      });
+    }
   }
 
   void _selectDate(String date) {
     setState(() {
       selectedDate = date;
-      dateSlots = dateSlots.map((slot) {
-        return slot.copyWith(isSelected: slot.fullDate == date);
-      }).toList();
+      // Reset time selection when date changes
+      selectedTimeSlotId = null;
+      selectedTimeSlot = null;
     });
   }
 
-  void _makeReservation() {
-    if (selectedTime != null && selectedDate != null) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _buildSuccessDialog(),
-      );
-
-      Future.delayed(const Duration(seconds: 3), () {
-        Navigator.of(context).pop();
-        Navigator.of(context).pop();
+  void _selectTimeSlot(AvailableTimeSlot timeSlot) {
+    if (timeSlot.isAvailable) {
+      setState(() {
+        selectedTimeSlotId = timeSlot.timeSlotId;
+        selectedTimeSlot = timeSlot;
       });
     }
+  }
+
+  void _makeReservation() {
+    if (selectedField != null &&
+        selectedDate != null &&
+        selectedTimeSlotId != null) {
+      final request = ReservationRequest(
+        fieldId: selectedField!.fieldId,
+        date: selectedDate!,
+        timeSlotId: selectedTimeSlotId!,
+      );
+      context.read<FieldReservationBloc>().add(
+            MakeFieldReservation(request: request),
+          );
+    }
+  }
+
+  List<AvailableDate> _getAvailableDatesForSelectedField() {
+    if (selectedField != null) {
+      return selectedField!.availableDates;
+    }
+    return [];
+  }
+
+  List<AvailableTimeSlot> _getAvailableTimeSlotsForSelectedDate() {
+    if (selectedField != null && selectedDate != null) {
+      final availableDate = selectedField!.availableDates.firstWhere(
+        (date) => date.date == selectedDate,
+        orElse: () => const AvailableDate(
+          date: '',
+          dayName: '',
+          day: '',
+          month: '',
+          availableTimeSlots: [],
+        ),
+      );
+      return availableDate.availableTimeSlots;
+    }
+    return [];
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppTheme.overlayColor,
+                AppTheme.primaryColor.withOpacity(0.9),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.overlayColor.withOpacity(0.5),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppTheme.accentColor,
+                    width: 3,
+                  ),
+                  color: AppTheme.accentColor.withOpacity(0.1),
+                ),
+                child: Icon(
+                  Icons.check,
+                  color: AppTheme.accentColor,
+                  size: 40,
+                ),
+              ),
+              const SizedBox(height: 20),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'RÉSERVATION EFFECTUÉE',
+                  style: TextStyle(
+                    color: AppTheme.primaryTextColor,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 4),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'AVEC SUCCÈS',
+                  style: TextStyle(
+                    color: AppTheme.primaryTextColor,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Pour consulter, veuillez vérifier votre\nhistorique de réservations',
+                style: TextStyle(
+                  color: AppTheme.secondaryTextColor,
+                  fontSize: 14,
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close dialog
+                    Navigator.of(context).pop(); // Go back to previous screen
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.accentColor,
+                    foregroundColor: AppTheme.primaryTextColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: Text(
+                    'Continuer',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.red.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   @override
@@ -143,64 +319,191 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
             ),
           ),
           child: SafeArea(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      physics: const ClampingScrollPhysics(),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight,
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: context.width * 0.05,
-                            vertical: 20,
+            child: BlocListener<FieldReservationBloc, FieldReservationState>(
+              listener: (context, state) {
+                if (state is FieldSchedulesLoaded) {
+                  setState(() {
+                    fieldSchedules = state.schedules;
+                    if (fieldSchedules.isNotEmpty) {
+                      selectedField = fieldSchedules[0];
+                    }
+                  });
+                } else if (state is ReservationMade) {
+                  _showSuccessDialog();
+                } else if (state is FieldSchedulesError) {
+                  _showErrorSnackBar(
+                      'Failed to load field schedules: ${state.message}');
+                } else if (state is ReservationError) {
+                  _showErrorSnackBar(
+                      'Failed to make reservation: ${state.message}');
+                }
+              },
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        physics: const ClampingScrollPhysics(),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
                           ),
-                          child: Column(
-                            children: [
-                              // Header
-                              _buildHeader(context),
-
-                              SizedBox(height: context.height * 0.02),
-
-                              // Title
-                              _buildTitle(),
-
-                              SizedBox(height: context.height * 0.025),
-
-                              // Field selection wheel
-                              _buildFieldSection(context),
-
-                              SizedBox(height: context.height * 0.02),
-
-                              // Date selection
-                              _buildDateSection(context),
-
-                              SizedBox(height: context.height * 0.02),
-
-                              // Time selection
-                              _buildTimeSection(context),
-
-                              SizedBox(height: context.height * 0.04),
-
-                              // Reserve button
-                              _buildReserveButton(context),
-
-                              SizedBox(height: 20),
-                            ],
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: context.width * 0.05,
+                              vertical: 20,
+                            ),
+                            child: Column(
+                              children: [
+                                _buildHeader(context),
+                                SizedBox(height: context.height * 0.02),
+                                _buildTitle(),
+                                SizedBox(height: context.height * 0.025),
+                                _buildContent(context),
+                                SizedBox(height: 20),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    return BlocBuilder<FieldReservationBloc, FieldReservationState>(
+      builder: (context, state) {
+        if (state is FieldSchedulesLoading) {
+          return _buildLoadingState();
+        } else if (state is FieldSchedulesError) {
+          return _buildErrorState(state.message);
+        } else if (fieldSchedules.isEmpty) {
+          return _buildEmptyState();
+        } else {
+          return Column(
+            children: [
+              _buildFieldSection(context),
+              SizedBox(height: context.height * 0.02),
+              _buildDateSection(context),
+              SizedBox(height: context.height * 0.02),
+              _buildTimeSection(context),
+              SizedBox(height: context.height * 0.04),
+              _buildReserveButton(context),
+            ],
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Container(
+      height: 300,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accentColor),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Chargement des terrains...',
+              style: TextStyle(
+                color: AppTheme.primaryTextColor,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    return Container(
+      height: 300,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              color: Colors.red,
+              size: 48,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Erreur lors du chargement',
+              style: TextStyle(
+                color: AppTheme.primaryTextColor,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              message,
+              style: TextStyle(
+                color: AppTheme.secondaryTextColor,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadFieldSchedules,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentColor,
+                foregroundColor: AppTheme.primaryTextColor,
+              ),
+              child: Text('Réessayer'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      height: 300,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.sports_soccer,
+              color: AppTheme.secondaryTextColor,
+              size: 48,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Aucun terrain disponible',
+              style: TextStyle(
+                color: AppTheme.primaryTextColor,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Veuillez réessayer plus tard',
+              style: TextStyle(
+                color: AppTheme.secondaryTextColor,
+                fontSize: 14,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -284,19 +587,13 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
   }
 
   Widget _buildFieldSection(BuildContext context) {
-    final fields = [
-      {'name': 'Terrain Central', 'type': 'Central'},
-      {'name': 'Terrain Est', 'type': 'Est'},
-      {'name': 'Terrain Ouest', 'type': 'Ouest'},
-    ];
-
     final fieldHeight = context.height * 0.22;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Choisir Votre Type de Terrain',
+          'Choisir Votre Terrain',
           style: TextStyle(
             color: AppTheme.primaryTextColor,
             fontSize: 18,
@@ -311,15 +608,12 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
               // PageView for fields
               PageView.builder(
                 controller: _fieldPageController,
-                itemCount: fields.length,
-                onPageChanged: (index) {
-                  setState(() {
-                    selectedFieldIndex = index;
-                  });
-                },
+                itemCount: fieldSchedules.length,
+                onPageChanged: _selectField, // Updated to _selectField
                 itemBuilder: (context, index) {
                   final isSelected = index == selectedFieldIndex;
-                  final field = fields[index];
+                  final field =
+                      fieldSchedules[index]; // Changed from static fields list
 
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
@@ -372,16 +666,15 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
                                   ),
                                 ),
                               ),
-
                               // Field lines overlay
                               SizedBox(
                                 width: double.infinity,
                                 height: double.infinity,
                                 child: CustomPaint(
-                                  painter: SoccerFieldPainter(),
+                                  painter:
+                                      SoccerFieldPainter(), // Assuming this painter is defined elsewhere or will be provided
                                 ),
                               ),
-
                               // Field name
                               Positioned(
                                 bottom: 0,
@@ -405,7 +698,7 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
                                       FittedBox(
                                         fit: BoxFit.scaleDown,
                                         child: Text(
-                                          'Réservation ${field['name']}',
+                                          field.fieldName, // Dynamic field name
                                           style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 14,
@@ -415,6 +708,16 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
                                           maxLines: 1,
                                         ),
                                       ),
+                                      if (field.location
+                                          .isNotEmpty) // Dynamic location
+                                        Text(
+                                          field.location,
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 10,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
                                       if (isSelected)
                                         Container(
                                           margin: const EdgeInsets.only(top: 4),
@@ -438,74 +741,25 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
                   );
                 },
               ),
-
-              // Left arrow
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: selectedFieldIndex > 0
-                      ? GestureDetector(
-                          onTap: () {
-                            _fieldPageController.previousPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppTheme.overlayColor.withOpacity(0.8),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppTheme.borderColor.withOpacity(0.5),
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.chevron_left,
-                              color: AppTheme.primaryTextColor,
-                              size: 24,
-                            ),
-                          ),
-                        )
-                      : const SizedBox(),
+              if (fieldSchedules.length > 1) ...[
+                // Only show arrows if more than one field
+                _buildNavigationArrow(
+                  isLeft: true,
+                  isVisible: selectedFieldIndex > 0,
+                  onTap: () => _fieldPageController.previousPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  ),
                 ),
-              ),
-
-              // Right arrow
-              Positioned(
-                right: 0,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: selectedFieldIndex < fields.length - 1
-                      ? GestureDetector(
-                          onTap: () {
-                            _fieldPageController.nextPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppTheme.overlayColor.withOpacity(0.8),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppTheme.borderColor.withOpacity(0.5),
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.chevron_right,
-                              color: AppTheme.primaryTextColor,
-                              size: 24,
-                            ),
-                          ),
-                        )
-                      : const SizedBox(),
+                _buildNavigationArrow(
+                  isLeft: false,
+                  isVisible: selectedFieldIndex < fieldSchedules.length - 1,
+                  onTap: () => _fieldPageController.nextPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -513,7 +767,44 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
     );
   }
 
+  Widget _buildNavigationArrow({
+    required bool isLeft,
+    required bool isVisible,
+    required VoidCallback onTap,
+  }) {
+    return Positioned(
+      left: isLeft ? 0 : null,
+      right: isLeft ? null : 0,
+      top: 0,
+      bottom: 0,
+      child: Center(
+        child: isVisible
+            ? GestureDetector(
+                onTap: onTap,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.overlayColor.withOpacity(0.8),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppTheme.borderColor.withOpacity(0.5),
+                    ),
+                  ),
+                  child: Icon(
+                    isLeft ? Icons.chevron_left : Icons.chevron_right,
+                    color: AppTheme.primaryTextColor,
+                    size: 24,
+                  ),
+                ),
+              )
+            : const SizedBox(),
+      ),
+    );
+  }
+
   Widget _buildDateSection(BuildContext context) {
+    final availableDates =
+        _getAvailableDatesForSelectedField(); // Dynamic dates
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -526,90 +817,102 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
           ),
         ),
         SizedBox(height: context.height * 0.015),
-        SizedBox(
-          height: 80,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: dateSlots.length,
-            itemBuilder: (context, index) {
-              final dateSlot = dateSlots[index];
-              final isSelected = dateSlot.isSelected;
-
-              return GestureDetector(
-                onTap: () => _selectDate(dateSlot.fullDate),
-                child: Container(
-                  margin: EdgeInsets.only(right: context.width * 0.02),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 70,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppTheme.accentColor
-                        : AppTheme.cardColor.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
+        if (availableDates.isEmpty)
+          Container(
+            height: 80,
+            child: Center(
+              child: Text(
+                'Aucune date disponible',
+                style: TextStyle(
+                  color: AppTheme.secondaryTextColor,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          )
+        else
+          SizedBox(
+            height: 80,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: availableDates.length,
+              itemBuilder: (context, index) {
+                final availableDate = availableDates[index];
+                final isSelected = availableDate.date == selectedDate;
+                return GestureDetector(
+                  onTap: () => _selectDate(availableDate.date),
+                  child: Container(
+                    margin: EdgeInsets.only(right: context.width * 0.02),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    constraints: const BoxConstraints(minWidth: 70),
+                    decoration: BoxDecoration(
                       color: isSelected
-                          ? AppTheme.borderColor
-                          : AppTheme.borderColor.withOpacity(0.3),
-                      width: 1,
+                          ? AppTheme.accentColor
+                          : AppTheme.cardColor.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppTheme.borderColor
+                            : AppTheme.borderColor.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            availableDate.dayName,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? AppTheme.primaryTextColor
+                                  : AppTheme.secondaryTextColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          availableDate.day,
+                          style: TextStyle(
+                            color: isSelected
+                                ? AppTheme.primaryTextColor
+                                : AppTheme.secondaryTextColor,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            availableDate.month,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? AppTheme.primaryTextColor
+                                  : AppTheme.secondaryTextColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          dateSlot.dayName,
-                          style: TextStyle(
-                            color: isSelected
-                                ? AppTheme.primaryTextColor
-                                : AppTheme.secondaryTextColor,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        dateSlot.day,
-                        style: TextStyle(
-                          color: isSelected
-                              ? AppTheme.primaryTextColor
-                              : AppTheme.secondaryTextColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          dateSlot.month,
-                          style: TextStyle(
-                            color: isSelected
-                                ? AppTheme.primaryTextColor
-                                : AppTheme.secondaryTextColor,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }
 
   Widget _buildTimeSection(BuildContext context) {
+    final availableTimeSlots = _getAvailableTimeSlotsForSelectedDate();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -622,168 +925,115 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
           ),
         ),
         SizedBox(height: context.height * 0.015),
-        SizedBox(
-          height: 60,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: timeSlots.length,
-            itemBuilder: (context, index) {
-              final timeSlot = timeSlots[index];
-              final isSelected = timeSlot.isSelected;
+        if (selectedDate == null)
+          Container(
+            height: 60,
+            child: Center(
+              child: Text(
+                'Veuillez d\'abord choisir une date',
+                style: TextStyle(
+                  color: AppTheme.secondaryTextColor,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          )
+        else if (availableTimeSlots.isEmpty)
+          Container(
+            height: 60,
+            child: Center(
+              child: Text(
+                'Aucun créneau disponible pour cette date',
+                style: TextStyle(
+                  color: AppTheme.secondaryTextColor,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          )
+        else
+          SizedBox(
+            height: 60,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: availableTimeSlots.length,
+              itemBuilder: (context, index) {
+                final timeSlot = availableTimeSlots[index];
+                final isSelected = timeSlot.timeSlotId == selectedTimeSlotId;
+                final isAvailable = timeSlot.isAvailable;
 
-              return GestureDetector(
-                onTap: () => _selectTime(timeSlot.time),
-                child: Container(
-                  margin: const EdgeInsets.only(right: 12),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 80,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppTheme.accentColor
-                        : AppTheme.cardColor.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(
-                      color: isSelected
-                          ? AppTheme.borderColor
-                          : AppTheme.borderColor.withOpacity(0.3),
-                      width: isSelected ? 2 : 1,
+                return GestureDetector(
+                  onTap: isAvailable ? () => _selectTimeSlot(timeSlot) : null,
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
                     ),
-                  ),
-                  child: Center(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
+                    constraints: const BoxConstraints(minWidth: 90),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppTheme.accentColor
+                          : isAvailable
+                              ? AppTheme.cardColor.withOpacity(0.3)
+                              : AppTheme.cardColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppTheme.borderColor
+                            : isAvailable
+                                ? AppTheme.borderColor.withOpacity(0.3)
+                                : Colors.transparent,
+                        width: 1,
+                      ),
+                    ),
+                    child: Center(
                       child: Text(
-                        timeSlot.time,
+                        timeSlot.startTime,
                         style: TextStyle(
                           color: isSelected
                               ? AppTheme.primaryTextColor
-                              : AppTheme.secondaryTextColor,
+                              : isAvailable
+                                  ? AppTheme.secondaryTextColor
+                                  : AppTheme.secondaryTextColor
+                                      .withOpacity(0.5),
                           fontSize: 16,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }
 
   Widget _buildReserveButton(BuildContext context) {
+    final bool isButtonEnabled = selectedField != null &&
+        selectedDate != null &&
+        selectedTimeSlotId != null;
+
     return SizedBox(
       width: double.infinity,
-      height: 56,
       child: ElevatedButton(
-        onPressed: (selectedTime != null && selectedDate != null)
-            ? _makeReservation
-            : null,
+        onPressed: isButtonEnabled ? _makeReservation : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.accentColor,
           foregroundColor: AppTheme.primaryTextColor,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(16),
           ),
-          elevation: 8,
-          shadowColor: AppTheme.overlayColor.withOpacity(0.5),
+          padding: const EdgeInsets.symmetric(vertical: 16),
         ),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            'RÉSERVER',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
-            ),
+        child: Text(
+          'Réserver Maintenant',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSuccessDialog() {
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      child: Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppTheme.overlayColor,
-              AppTheme.primaryColor.withOpacity(0.9),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppTheme.primaryTextColor,
-                  width: 2,
-                ),
-              ),
-              child: Icon(
-                Icons.check,
-                color: AppTheme.primaryTextColor,
-                size: 40,
-              ),
-            ),
-            const SizedBox(height: 20),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                'RÉSERVATION EFFECTUÉE',
-                style: TextStyle(
-                  color: AppTheme.primaryTextColor,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 4),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                'AVEC SUCCÈS',
-                style: TextStyle(
-                  color: AppTheme.primaryTextColor,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Pour consulter, veuillez vérifier votre\nhistorique de réservations',
-              style: TextStyle(
-                color: AppTheme.secondaryTextColor,
-                fontSize: 14,
-                height: 1.4,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
         ),
       ),
     );
@@ -794,143 +1044,33 @@ class SoccerFieldPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.3)
-      ..strokeWidth = 2
+      ..color = Colors.white
+      ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
 
-    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
 
-    canvas.drawRect(rect, paint);
-
+    
     canvas.drawLine(
-      Offset(size.width / 2, 0),
-      Offset(size.width / 2, size.height),
-      paint,
-    );
+        Offset(size.width / 2, 0), Offset(size.width / 2, size.height), paint);
 
+    
     canvas.drawCircle(
-      Offset(size.width / 2, size.height / 2),
-      size.height * 0.2,
-      paint,
-    );
+        Offset(size.width / 2, size.height / 2), size.width * 0.15, paint);
 
-    final goalWidth = size.width * 0.3;
-    final goalHeight = size.height * 0.4;
-
+    
     canvas.drawRect(
-      Rect.fromLTWH(
-          0, (size.height - goalHeight) / 2, goalWidth / 2, goalHeight),
-      paint,
-    );
-
+        Rect.fromLTWH(0, size.height / 4, size.width * 0.15, size.height / 2),
+        paint);
     canvas.drawRect(
-      Rect.fromLTWH(size.width - goalWidth / 2, (size.height - goalHeight) / 2,
-          goalWidth / 2, goalHeight),
-      paint,
-    );
+        Rect.fromLTWH(size.width * 0.85, size.height / 4, size.width * 0.15,
+            size.height / 2),
+        paint);
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
-}
-
-class DateSlot {
-  final String dayName;
-  final String day;
-  final String month;
-  final String fullDate;
-  final bool isSelected;
-
-  DateSlot({
-    required this.dayName,
-    required this.day,
-    required this.month,
-    required this.fullDate,
-    this.isSelected = false,
-  });
-
-  DateSlot copyWith({
-    String? dayName,
-    String? day,
-    String? month,
-    String? fullDate,
-    bool? isSelected,
-  }) {
-    return DateSlot(
-      dayName: dayName ?? this.dayName,
-      day: day ?? this.day,
-      month: month ?? this.month,
-      fullDate: fullDate ?? this.fullDate,
-      isSelected: isSelected ?? this.isSelected,
-    );
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
   }
-}
-
-List<DateSlot> getDateSlots() {
-  final now = DateTime.now();
-  final dates = <DateSlot>[];
-
-  for (int i = 0; i < 7; i++) {
-    final date = now.add(Duration(days: i));
-    final dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-    final monthNames = [
-      'Jan',
-      'Fév',
-      'Mar',
-      'Avr',
-      'Mai',
-      'Jun',
-      'Jul',
-      'Aoû',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Déc'
-    ];
-
-    dates.add(DateSlot(
-      dayName: dayNames[date.weekday - 1],
-      day: date.day.toString().padLeft(2, '0'),
-      month: monthNames[date.month - 1],
-      fullDate:
-          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
-    ));
-  }
-
-  return dates;
-}
-
-// Mock TimeSlot class for reference
-class TimeSlot {
-  final String time;
-  final bool isSelected;
-
-  TimeSlot({
-    required this.time,
-    this.isSelected = false,
-  });
-
-  TimeSlot copyWith({
-    String? time,
-    bool? isSelected,
-  }) {
-    return TimeSlot(
-      time: time ?? this.time,
-      isSelected: isSelected ?? this.isSelected,
-    );
-  }
-}
-
-// Mock function for getting time slots
-List<TimeSlot> getTimeSlots() {
-  return [
-    TimeSlot(time: '8:00'),
-    TimeSlot(time: '9:30'),
-    TimeSlot(time: '11:00'),
-    TimeSlot(time: '14:00'),
-    TimeSlot(time: '15:30'),
-    TimeSlot(time: '17:00'),
-    TimeSlot(time: '18:30'),
-    TimeSlot(time: '20:00'),
-  ];
 }
