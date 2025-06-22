@@ -3,9 +3,12 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:soccer_complex/core/constants/images.dart';
 import 'package:soccer_complex/core/extensions/extensions.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../reserve_field/domain/entities/reservation.dart';
 
 class HistoryDetailsScreen extends StatefulWidget {
-  const HistoryDetailsScreen({super.key});
+  final String reservationId;
+
+  const HistoryDetailsScreen({super.key, required this.reservationId});
 
   @override
   State<HistoryDetailsScreen> createState() => _HistoryDetailsScreenState();
@@ -17,6 +20,7 @@ class _HistoryDetailsScreenState extends State<HistoryDetailsScreen>
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  late Reservation _reservation;
 
   @override
   void initState() {
@@ -49,6 +53,23 @@ class _HistoryDetailsScreenState extends State<HistoryDetailsScreen>
     // Start animations
     _fadeController.forward();
     _slideController.forward();
+    _reservation = _mockReservation(widget.reservationId);
+  }
+
+  Reservation _mockReservation(String reservationId) {
+    return Reservation(
+      reservationId: reservationId,
+      fieldId: 'field_123',
+      fieldName: 'Terrain Central',
+      fieldType: 'Soccer',
+      date: '05/06/2025',
+      timeSlotId: 'slot_930',
+      startTime: '09:30',
+      endTime: '10:30',
+      price: 50.0,
+      status: 'Confirmed',
+      createdAt: DateTime.now(),
+    );
   }
 
   @override
@@ -117,17 +138,19 @@ class _HistoryDetailsScreenState extends State<HistoryDetailsScreen>
                               SizedBox(height: context.height * 0.04),
 
                               // Title
-                              _buildTitle(context),
+                              _buildTitle(context, _reservation.fieldName),
 
                               SizedBox(height: context.height * 0.02),
 
                               // Date and time
-                              _buildDateTimeInfo(context),
+                              _buildDateTimeInfo(context, _reservation.date,
+                                  _reservation.startTime),
 
                               SizedBox(height: context.height * 0.02),
 
                               // QR Code section
-                              _buildQRCodeSection(context),
+                              _buildQRCodeSection(
+                                  context, _reservation.reservationId),
 
                               SizedBox(height: context.height * 0.04),
                             ],
@@ -190,42 +213,6 @@ class _HistoryDetailsScreenState extends State<HistoryDetailsScreen>
               ),
             ],
           ),
-
-          // Profile avatar
-          GestureDetector(
-            onTap: () {
-              // Handle profile tap
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppTheme.borderColor,
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.overlayColor,
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(50),
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  color: AppTheme.accentColor,
-                  child: Icon(
-                    Icons.person,
-                    color: AppTheme.secondaryTextColor,
-                    size: 28,
-                  ),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -253,7 +240,6 @@ class _HistoryDetailsScreenState extends State<HistoryDetailsScreen>
         borderRadius: BorderRadius.circular(18),
         child: Stack(
           children: [
-            // Field background image - you can replace with actual field image
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
@@ -263,7 +249,7 @@ class _HistoryDetailsScreenState extends State<HistoryDetailsScreen>
                     colors: [
                       const Color(0xFF2E7D32), // Dark green
                       const Color(0xFF4CAF50), // Light green
-                      const Color(0xFF2E7D32), // Dark green
+                      const Color(0xFF2E7D32),
                     ],
                   ),
                 ),
@@ -281,9 +267,9 @@ class _HistoryDetailsScreenState extends State<HistoryDetailsScreen>
     );
   }
 
-  Widget _buildTitle(BuildContext context) {
+  Widget _buildTitle(BuildContext context, String title) {
     return Text(
-      "Réservation Terrain Central",
+      title,
       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
             color: AppTheme.primaryTextColor,
             fontWeight: FontWeight.bold,
@@ -292,7 +278,7 @@ class _HistoryDetailsScreenState extends State<HistoryDetailsScreen>
     );
   }
 
-  Widget _buildDateTimeInfo(BuildContext context) {
+  Widget _buildDateTimeInfo(BuildContext context, String date, String time) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -316,7 +302,7 @@ class _HistoryDetailsScreenState extends State<HistoryDetailsScreen>
               ),
               const SizedBox(width: 8),
               Text(
-                "05/06/2025",
+                date,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: AppTheme.primaryTextColor,
                       fontWeight: FontWeight.w600,
@@ -348,7 +334,7 @@ class _HistoryDetailsScreenState extends State<HistoryDetailsScreen>
               ),
               const SizedBox(width: 8),
               Text(
-                "9:30",
+                time,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: AppTheme.primaryTextColor,
                       fontWeight: FontWeight.w600,
@@ -361,7 +347,7 @@ class _HistoryDetailsScreenState extends State<HistoryDetailsScreen>
     );
   }
 
-  Widget _buildQRCodeSection(BuildContext context) {
+  Widget _buildQRCodeSection(BuildContext context, String reservationId) {
     return Column(
       children: [
         // Description text
@@ -407,7 +393,7 @@ class _HistoryDetailsScreenState extends State<HistoryDetailsScreen>
             ],
           ),
           child: QrImageView(
-            data: 'reservation_id_12345_central_soccer_05062025_0930',
+            data: reservationId,
             version: QrVersions.auto,
             size: context.width * 0.5,
             backgroundColor: Colors.white,
@@ -419,7 +405,6 @@ class _HistoryDetailsScreenState extends State<HistoryDetailsScreen>
   }
 }
 
-// Custom painter for football field lines
 class FieldLinesPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

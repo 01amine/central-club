@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:soccer_complex/core/constants/images.dart';
 import 'package:soccer_complex/core/extensions/extensions.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../home/presentation/cubit/bottom_navigation_cubit.dart';
+import '../../../reserve_field/domain/entities/reservation.dart';
+import '../bloc/history_bloc.dart';
+import '../../../../di/injection_container.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -48,6 +53,9 @@ class _HistoryScreenState extends State<HistoryScreen>
     // Start animations
     _fadeController.forward();
     _slideController.forward();
+
+    // Dispatch event to load reservations
+    sl<HistoryBloc>().add(GetUserReservationsEvent());
   }
 
   @override
@@ -113,7 +121,44 @@ class _HistoryScreenState extends State<HistoryScreen>
 
                       // History List
                       Expanded(
-                        child: _buildHistoryList(context),
+                        child: BlocBuilder<HistoryBloc, HistoryState>(
+                          bloc: sl<HistoryBloc>(),
+                          builder: (context, state) {
+                            if (state is HistoryLoading) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            } else if (state is HistoryLoaded) {
+                              if (state.reservations.isEmpty) {
+                                return Center(
+                                  child: Text(
+                                    "No reservations found.",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color: AppTheme.secondaryTextColor,
+                                        ),
+                                  ),
+                                );
+                              }
+                              return _buildHistoryList(
+                                  context, state.reservations);
+                            } else if (state is HistoryError) {
+                              return Center(
+                                child: Text(
+                                  "Error: ${state.message}",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        color: Colors.red,
+                                      ),
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -141,7 +186,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         // Profile avatar
         GestureDetector(
           onTap: () {
-            // Handle profile tap
+            context.read<BottomNavigationCubit>().changeTab(2);
           },
           child: Container(
             decoration: BoxDecoration(
@@ -189,40 +234,20 @@ class _HistoryScreenState extends State<HistoryScreen>
     );
   }
 
-  Widget _buildHistoryList(BuildContext context) {
-    final historyItems = [
-      {
-        'title': 'Réservation Terrain Central',
-        'date': '05/06/2025',
-        'time': '9:30',
-      },
-      {
-        'title': 'Réservation Terrain Central',
-        'date': '05/06/2025',
-        'time': '9:30',
-      },
-      {
-        'title': 'Réservation Terrain Central',
-        'date': '05/06/2025',
-        'time': '9:30',
-      },
-      {
-        'title': 'Réservation Terrain Central',
-        'date': '05/06/2025',
-        'time': '9:30',
-      },
-    ];
-
+  Widget _buildHistoryList(
+      BuildContext context, List<Reservation> reservations) {
     return ListView.separated(
-      itemCount: historyItems.length,
+      itemCount: reservations.length,
       separatorBuilder: (context, index) =>
           SizedBox(height: context.height * 0.02),
       itemBuilder: (context, index) {
+        final reservation = reservations[index];
         return _buildHistoryCard(
           context,
-          historyItems[index]['title']!,
-          historyItems[index]['date']!,
-          historyItems[index]['time']!,
+          reservation.fieldName,
+          reservation.date,
+          "${reservation.startTime} - ${reservation.endTime}",
+          reservation.reservationId,
         );
       },
     );
@@ -233,6 +258,7 @@ class _HistoryScreenState extends State<HistoryScreen>
     String title,
     String date,
     String time,
+    String reservationId,
   ) {
     return Container(
       decoration: BoxDecoration(
@@ -338,7 +364,8 @@ class _HistoryScreenState extends State<HistoryScreen>
                   // "Voir Plus" button
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(context, '/history_details');
+                      Navigator.pushNamed(context, '/history_details',
+                          arguments: reservationId);
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(

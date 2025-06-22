@@ -17,6 +17,7 @@ import '../features/auth/domain/usecases/login_user.dart';
 import '../features/auth/domain/usecases/save_token.dart';
 import '../features/auth/domain/usecases/signup_user.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
+import '../features/history/presentation/bloc/history_bloc.dart';
 import '../features/onboarding/data/repositories/onboarding_repository_impl.dart';
 import '../features/onboarding/domain/repositories/onboarding_repository.dart';
 import '../features/onboarding/domain/usecases/get_onboarding_seen.dart';
@@ -156,4 +157,5 @@ Future<void> init() async {
       cancelReservation: sl<CancelReservation>(),
     ),
   );
+  sl.registerFactory(() => HistoryBloc(getUserReservations: sl()));
 }
