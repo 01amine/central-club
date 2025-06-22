@@ -4,7 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:soccer_complex/core/constants/images.dart';
 import 'package:soccer_complex/core/extensions/extensions.dart';
 import 'package:soccer_complex/features/auth/presentation/widgets/text_field.dart';
-import 'package:soccer_complex/features/auth/presentation/bloc/auth_bloc.dart'; // Import AuthBloc
+import 'package:soccer_complex/features/auth/presentation/bloc/auth_bloc.dart';
 
 import '../../../../core/theme/theme.dart';
 
@@ -18,12 +18,66 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  String? _emailError;
+  String? _passwordError;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  // email regex
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+        .hasMatch(email);
+  }
+
+  // Validation function
+  bool _validateForm() {
+    setState(() {
+      _emailError = null;
+      _passwordError = null;
+    });
+
+    bool isValid = true;
+
+    // Email validation
+    if (_emailController.text.trim().isEmpty) {
+      setState(() {
+        _emailError = "L'email est requis";
+      });
+      isValid = false;
+    } else if (!_isValidEmail(_emailController.text.trim())) {
+      setState(() {
+        _emailError = "Veuillez entrer un email valide";
+      });
+      isValid = false;
+    }
+
+    // Password validation
+    if (_passwordController.text.trim().isEmpty) {
+      setState(() {
+        _passwordError = "Le mot de passe est requis";
+      });
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  void _handleLogin() {
+    if (_validateForm()) {
+      context.read<AuthBloc>().add(
+            LoginRequested(
+              email: _emailController.text.trim(),
+              password: _passwordController.text.trim(),
+            ),
+          );
+    }
   }
 
   @override
@@ -60,6 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     SizedBox(height: context.height * 0.05),
                     Form(
+                      key: _formKey,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -73,6 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             obscureText: false,
+                            errorText: _emailError,
                           ),
                           SizedBox(height: context.height * 0.03),
                           Text(
@@ -84,6 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             hintText: "Entrer votre mot de passe...",
                             controller: _passwordController,
                             obscureText: true,
+                            errorText: _passwordError,
                           ),
                         ],
                       ),
@@ -106,16 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: MaterialButton(
-                            onPressed: state is AuthLoading
-                                ? null
-                                : () {
-                                    context.read<AuthBloc>().add(
-                                          LoginRequested(
-                                            email: _emailController.text,
-                                            password: _passwordController.text,
-                                          ),
-                                        );
-                                  },
+                            onPressed: state is AuthLoading ? null : _handleLogin,
                             color: AppTheme.buttonColor,
                             minWidth: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 15),

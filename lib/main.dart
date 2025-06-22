@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:soccer_complex/features/auth/presentation/screens/login_screen.dart';
 import 'package:soccer_complex/features/auth/presentation/screens/signup_screen.dart';
@@ -18,6 +19,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   await di.init();
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.immersiveSticky,
+    overlays: [SystemUiOverlay.top],
+  );
   runApp(const MyApp());
 }
 
