@@ -13,7 +13,7 @@ import 'features/home/presentation/cubit/bottom_navigation_cubit.dart';
 import 'features/home/presentation/screens/home_screen.dart';
 import 'features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'features/onboarding/presentation/screens/onboarding_screen.dart';
-import 'features/reserve_field/domain/entities/field.dart';
+import 'features/reserve_field/domain/entities/field_schedule.dart';
 import 'features/reserve_field/presentation/bloc/field_reservation_bloc.dart';
 import 'features/reserve_field/presentation/screens/reserve_field_screen.dart';
 import 'features/splash/presentation/bloc/splash_bloc.dart';

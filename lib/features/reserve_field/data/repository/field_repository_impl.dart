@@ -66,14 +66,14 @@ class FieldRepositoryImpl implements FieldRepository {
         final reservation =
             await remoteDataSource.makeReservation(requestModel);
 
-        // Update cached user reservations if they exist
+        
         try {
           final cachedReservations =
               await localDataSource.getCachedUserReservations();
           cachedReservations.add(reservation);
           await localDataSource.cacheUserReservations(cachedReservations);
         } catch (e) {
-          // Cache update failed, but reservation succeeded - that's ok
+          
         }
 
         return Right(reservation);
@@ -127,7 +127,7 @@ class FieldRepositoryImpl implements FieldRepository {
         final success = await remoteDataSource.cancelReservation(reservationId);
 
         if (success) {
-          // Remove from cached reservations if they exist
+          
           try {
             final cachedReservations =
                 await localDataSource.getCachedUserReservations();
@@ -137,7 +137,7 @@ class FieldRepositoryImpl implements FieldRepository {
                 .toList();
             await localDataSource.cacheUserReservations(updatedReservations);
           } catch (e) {
-            // Cache update failed, but cancellation succeeded - that's ok
+            
           }
         }
 

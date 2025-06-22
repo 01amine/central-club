@@ -103,8 +103,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   void _onPageChanged(int index) {
     setState(() => _currentIndex = index);
-
-    // Restart content animation for new page
     _slideController.reset();
     _slideController.forward();
   }

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:soccer_complex/core/constants/images.dart';
 import 'package:soccer_complex/core/extensions/extensions.dart';
 import '../../../../core/theme/theme.dart';
-import '../../../reserve_field/domain/entities/field.dart';
+import '../../../reserve_field/domain/entities/field_schedule.dart';
 import '../cubit/bottom_navigation_cubit.dart';
 
 class ReservingScreen extends StatefulWidget {

@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; // Added import
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:soccer_complex/core/constants/images.dart';
 import 'package:soccer_complex/core/extensions/extensions.dart';
 import '../../../../core/theme/theme.dart';
-import '../../domain/entities/field.dart';
-import '../../domain/entities/available_date.dart'; // Added import
-import '../../domain/entities/available_time_slot.dart'; // Added import
-import '../../domain/entities/field_schedule.dart'; // Added import
-import '../../domain/entities/reservation_request.dart'; // Added import
-import '../bloc/field_reservation_bloc.dart'; // Added import
-import '../bloc/field_reservation_event.dart'; // Added import
-import '../bloc/field_reservation_state.dart'; // Added import
+import '../../domain/entities/available_date.dart'; 
+import '../../domain/entities/available_time_slot.dart'; 
+import '../../domain/entities/field_schedule.dart'; 
+import '../../domain/entities/reservation_request.dart'; 
+import '../bloc/field_reservation_bloc.dart'; 
+import '../bloc/field_reservation_event.dart'; 
+import '../bloc/field_reservation_state.dart'; 
 
 class ReserveFieldScreen extends StatefulWidget {
   final Field fieldType;
@@ -31,12 +30,12 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  List<FieldSchedule> fieldSchedules = []; // Changed from timeSlots/dateSlots
+  List<FieldSchedule> fieldSchedules = []; 
   int selectedFieldIndex = 0;
-  String? selectedTimeSlotId; // Changed from selectedTime
+  String? selectedTimeSlotId;
   String? selectedDate;
-  AvailableTimeSlot? selectedTimeSlot; // New variable
-  FieldSchedule? selectedField; // New variable
+  AvailableTimeSlot? selectedTimeSlot;
+  FieldSchedule? selectedField;
 
   final PageController _fieldPageController = PageController(
     viewportFraction: 0.7,
@@ -45,8 +44,8 @@ class _ReserveFieldScreenState extends State<ReserveFieldScreen>
   @override
   void initState() {
     super.initState();
-    _initializeAnimations(); // Changed initialization
-    _loadFieldSchedules(); // New function call
+    _initializeAnimations();
+    _loadFieldSchedules();
   }
 
   void _initializeAnimations() {
