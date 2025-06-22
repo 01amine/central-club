@@ -21,6 +21,7 @@ class _HistoryScreenState extends State<HistoryScreen>
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  late HistoryBloc _historyBloc; // Add this line
 
   final TextEditingController _searchController = TextEditingController();
   bool _isSearchVisible = false;
@@ -29,6 +30,7 @@ class _HistoryScreenState extends State<HistoryScreen>
   @override
   void initState() {
     super.initState();
+    _historyBloc = sl<HistoryBloc>(); // Initialize the bloc
     _initializeAnimations();
     _loadReservations();
   }
@@ -64,22 +66,22 @@ class _HistoryScreenState extends State<HistoryScreen>
   }
 
   void _loadReservations() {
-    sl<HistoryBloc>().add(GetUserReservationsEvent());
+    _historyBloc.add(GetUserReservationsEvent());
   }
 
   void _refreshReservations() {
-    sl<HistoryBloc>().add(RefreshReservationsEvent());
+    _historyBloc.add(RefreshReservationsEvent());
   }
 
   void _filterReservations(ReservationFilter filter) {
     setState(() {
       _currentFilter = filter;
     });
-    sl<HistoryBloc>().add(FilterReservationsEvent(filter: filter));
+    _historyBloc.add(FilterReservationsEvent(filter: filter));
   }
 
   void _searchReservations(String query) {
-    sl<HistoryBloc>().add(SearchReservationsEvent(query: query));
+    _historyBloc.add(SearchReservationsEvent(query: query));
   }
 
   @override
@@ -87,49 +89,52 @@ class _HistoryScreenState extends State<HistoryScreen>
     _fadeController.dispose();
     _slideController.dispose();
     _searchController.dispose();
+    _historyBloc.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.primaryColor,
-      body: Stack(
-        children: [
-          _buildBackground(),
-          SafeArea(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: context.width * 0.05,
-                    vertical: 20,
-                  ),
-                  child: Column(
-                    children: [
-                      _buildHeader(context),
-                      SizedBox(height: context.height * 0.03),
-                      _buildTitle(context),
-                      SizedBox(height: context.height * 0.02),
-                      _buildSearchAndFilters(context),
-                      SizedBox(height: context.height * 0.02),
-                      Expanded(
-                        child: BlocBuilder<HistoryBloc, HistoryState>(
-                          bloc: sl<HistoryBloc>(),
-                          builder: (context, state) {
-                            return _buildContent(context, state);
-                          },
+    return BlocProvider.value(
+      value: _historyBloc,
+      child: Scaffold(
+        backgroundColor: AppTheme.primaryColor,
+        body: Stack(
+          children: [
+            _buildBackground(),
+            SafeArea(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: context.width * 0.05,
+                      vertical: 20,
+                    ),
+                    child: Column(
+                      children: [
+                        _buildHeader(context),
+                        SizedBox(height: context.height * 0.03),
+                        _buildTitle(context),
+                        SizedBox(height: context.height * 0.02),
+                        _buildSearchAndFilters(context),
+                        SizedBox(height: context.height * 0.02),
+                        Expanded(
+                          child: BlocBuilder<HistoryBloc, HistoryState>(
+                            builder: (context, state) {
+                              return _buildContent(context, state);
+                            },
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -346,6 +351,8 @@ class _HistoryScreenState extends State<HistoryScreen>
   }
 
   Widget _buildContent(BuildContext context, HistoryState state) {
+    print('Current state: ${state.runtimeType}');
+
     if (state is HistoryLoading) {
       return _buildLoadingState();
     } else if (state is HistoryRefreshing) {
@@ -354,6 +361,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         state is HistoryFiltered ||
         state is HistorySearched) {
       final reservations = _getReservationsFromState(state);
+      print('Reservations count: ${reservations.length}');
 
       if (reservations.isEmpty) {
         return _buildEmptyState(context, state);
@@ -709,58 +717,25 @@ class _HistoryScreenState extends State<HistoryScreen>
                             color: AppTheme.secondaryTextColor,
                           ),
                     ),
-                    const SizedBox(width: 20),
+                    SizedBox(width: context.width * 0.03),
                     Icon(
                       Icons.access_time,
                       color: AppTheme.secondaryTextColor,
                       size: 16,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: context.width * 0.01),
                     Text(
-                      "${reservation.startTime} - ${reservation.endTime}",
+                      reservation.startTime,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppTheme.secondaryTextColor,
                           ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.attach_money,
-                      color: AppTheme.accentColor,
-                      size: 16,
-                    ),
-                    Text(
-                      "${reservation.price.toStringAsFixed(0)} DA",
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppTheme.accentColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                    if (isUpcoming) ...[
-                      const SizedBox(width: 16),
-                      Icon(
-                        Icons.upcoming,
-                        color: Colors.green,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        "À venir",
-                        style: TextStyle(
-                          color: Colors.green,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
               ],
             ),
           ),
+
           // "Voir Plus" button
           GestureDetector(
             onTap: () {
@@ -815,7 +790,7 @@ class _HistoryScreenState extends State<HistoryScreen>
             BoxShadow(
               color: statusColor.withOpacity(0.3),
               blurRadius: 4,
-              offset: const Offset(0, 2),
+              offset: const Offset(2, 2),
             ),
           ],
         ),

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:soccer_complex/features/auth/presentation/screens/login_screen.dart';
 import 'package:soccer_complex/features/auth/presentation/screens/signup_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:soccer_complex/features/history/presentation/pages/details_screen.dart';
 import 'di/injection_container.dart' as di;
 import 'core/theme/theme.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
@@ -66,7 +67,11 @@ class MyApp extends StatelessWidget {
               create: (_) => BottomNavigationCubit(), child: HomeLayout()),
           '/login': (context) => const LoginScreen(),
           '/signup': (context) => const SignupScreen(),
-          //'/history_details': (context) => const HistoryDetailsScreen(),
+          '/history_details': (context) {
+            final args = ModalRoute.of(context)?.settings.arguments as String?;
+
+            return HistoryDetailsScreen(reservationId: args!);
+          },
           '/reserve_field': (context) {
             final args = ModalRoute.of(context)?.settings.arguments as Field?;
 
