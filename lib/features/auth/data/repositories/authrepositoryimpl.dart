@@ -84,9 +84,9 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteToken() async {
+  Future<Either<Failure, void>> clearToken() async {
     try {
-      await localDataSource.deleteToken();
+      await localDataSource.clearToken();
       return const Right(null);
     } on CacheException {
       return Left(CacheFailure());

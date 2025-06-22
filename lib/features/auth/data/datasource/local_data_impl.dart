@@ -27,7 +27,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   }
 
   @override
-  Future<void> deleteToken() {
+  Future<void> clearToken() {
     return sharedPreferences.remove(CACHED_AUTH_TOKEN);
   }
 }

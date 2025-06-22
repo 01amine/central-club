@@ -11,7 +11,7 @@ import '../features/auth/data/datasource/remote_data.dart';
 import '../features/auth/data/datasource/remote_data_impl.dart';
 import '../features/auth/data/repositories/authrepositoryimpl.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
-import '../features/auth/domain/usecases/delete_token.dart';
+import '../features/auth/domain/usecases/clear_token.dart';
 import '../features/auth/domain/usecases/get_token.dart';
 import '../features/auth/domain/usecases/login_user.dart';
 import '../features/auth/domain/usecases/save_token.dart';
@@ -79,8 +79,7 @@ Future<void> init() async {
   sl.registerLazySingleton<SignupUser>(() => SignupUser(sl<AuthRepository>()));
   sl.registerLazySingleton<SaveToken>(() => SaveToken(sl<AuthRepository>()));
   sl.registerLazySingleton<GetToken>(() => GetToken(sl<AuthRepository>()));
-  sl.registerLazySingleton<DeleteToken>(
-      () => DeleteToken(sl<AuthRepository>()));
+  sl.registerLazySingleton<ClearToken>(() => ClearToken(sl<AuthRepository>()));
 
   // Onboarding Repository
   sl.registerLazySingleton<OnboardingRepository>(
@@ -132,6 +131,7 @@ Future<void> init() async {
       loginUser: sl<LoginUser>(),
       signupUser: sl<SignupUser>(),
       saveToken: sl<SaveToken>(),
+      clearToken: sl(),
     ),
   );
 

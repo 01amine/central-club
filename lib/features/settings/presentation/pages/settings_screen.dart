@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart'; // Import flutter_bloc
 import 'package:soccer_complex/core/constants/images.dart';
 import 'package:soccer_complex/core/extensions/extensions.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart'; // Import your AuthBloc
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -249,13 +251,28 @@ class _SettingsScreenState extends State<SettingsScreen>
             title: "Déconnexion",
             hasDropdown: true,
             onTap: () {
-              // Handle logout
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/login',
-                (route) => false,
-              );
+              // Dispatch LogoutRequested event
+              BlocProvider.of<AuthBloc>(context).add(const LogoutRequested());
             },
+          ),
+          // Listen for AuthState changes to navigate after logout
+          BlocListener<AuthBloc, AuthState>(
+            listener: (context, state) {
+              if (state is AuthInitial) {
+                // Navigate to login screen after successful logout
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/login',
+                  (route) => false,
+                );
+              } else if (state is AuthError) {
+                // Optionally show an error message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(state.message)),
+                );
+              }
+            },
+            child: Container(), // Empty container as listener child
           ),
         ],
       ),
