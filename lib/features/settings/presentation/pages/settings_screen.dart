@@ -131,6 +131,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Widget _buildHeader(BuildContext context) {
+    double userBalance = 1500.50;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -142,35 +144,83 @@ class _SettingsScreenState extends State<SettingsScreen>
           fit: BoxFit.contain,
         ),
 
-        // Profile avatar
-        Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: AppTheme.borderColor,
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.overlayColor,
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+        Row(
+          children: [
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: context.width * 0.02),
+              decoration: BoxDecoration(
+                color: AppTheme.cardColor.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(
+                  color: AppTheme.borderColor,
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.overlayColor.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(50),
-            child: Container(
-              width: 50,
-              height: 50,
-              color: AppTheme.accentColor,
-              child: Icon(
-                Icons.person,
-                color: AppTheme.secondaryTextColor,
-                size: 28,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Coin icon
+                  Image.asset(
+                    AppImages.coin_icon,
+                    height: context.height * 0.06,
+                    width: context.width * 0.06,
+                  ),
+                  SizedBox(width: context.width * 0.02),
+                  // Balance text
+                  Text(
+                    '${userBalance.toStringAsFixed(2)} DA',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.primaryTextColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
               ),
             ),
-          ),
+
+            SizedBox(width: context.width * 0.03),
+
+            // Profile avatar
+            GestureDetector(
+              onTap: () {},
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppTheme.borderColor,
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.overlayColor,
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(50),
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    color: AppTheme.accentColor,
+                    child: Icon(
+                      Icons.person,
+                      color: AppTheme.secondaryTextColor,
+                      size: 28,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );

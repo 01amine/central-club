@@ -22,4 +22,5 @@ class AppImages {
   static const String home_background = '$imagesPath/background-home.jpg';
   static const String auth_background = '$imagesPath/background-sign-up.jpg';
   static const String backgroundimage = '$imagesPath/background.jpg';
+  static const String coin_icon = '$iconsPath/star.png';
 }

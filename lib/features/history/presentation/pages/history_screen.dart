@@ -166,45 +166,62 @@ class _HistoryScreenState extends State<HistoryScreen>
   }
 
   Widget _buildHeader(BuildContext context) {
+    double userBalance = 1500.50;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        // Logo
         Image.asset(
           AppImages.logo_png,
           width: context.width * 0.2,
           height: context.width * 0.2,
           fit: BoxFit.contain,
         ),
+
         Row(
           children: [
-            // Search toggle button
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isSearchVisible = !_isSearchVisible;
-                  if (!_isSearchVisible && _searchController.text.isNotEmpty) {
-                    _searchController.clear();
-                    _loadReservations();
-                  }
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppTheme.cardColor.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppTheme.borderColor.withOpacity(0.5),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: context.width * 0.02),
+              decoration: BoxDecoration(
+                color: AppTheme.cardColor.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(
+                  color: AppTheme.borderColor,
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.overlayColor.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
                   ),
-                ),
-                child: Icon(
-                  _isSearchVisible ? Icons.close : Icons.search,
-                  color: AppTheme.primaryTextColor,
-                  size: 20,
-                ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Coin icon
+                  Image.asset(
+                    AppImages.coin_icon,
+                    height: context.height * 0.06,
+                    width: context.width * 0.06,
+                  ),
+                  SizedBox(width: context.width * 0.02),
+                  // Balance text
+                  Text(
+                    '${userBalance.toStringAsFixed(2)} DA',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.primaryTextColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 12),
+
+            SizedBox(width: context.width * 0.03),
+
             // Profile avatar
             GestureDetector(
               onTap: () {
