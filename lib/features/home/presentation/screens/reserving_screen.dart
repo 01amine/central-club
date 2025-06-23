@@ -62,7 +62,7 @@ class _ReservingScreenState extends State<ReservingScreen>
 
   void _navigateToReserveField(Field fieldType) {
     Navigator.of(context).pushNamed(
-      '/reserve_field',
+      '/match',
       arguments: fieldType,
     );
   }

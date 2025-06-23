@@ -5,6 +5,7 @@ import 'package:soccer_complex/features/auth/presentation/screens/login_screen.d
 import 'package:soccer_complex/features/auth/presentation/screens/signup_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:soccer_complex/features/history/presentation/pages/details_screen.dart';
+import 'package:soccer_complex/features/reserve_field/presentation/screens/match_screen.dart';
 import 'di/injection_container.dart' as di;
 import 'core/theme/theme.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
@@ -77,6 +78,11 @@ class MyApp extends StatelessWidget {
 
             return ReserveFieldScreen(fieldType: args!);
           },
+          '/match': (context) {
+            final args = ModalRoute.of(context)?.settings.arguments as Field?;
+
+            return MatchManagementScreen(fieldType: args!);
+          }
         },
       ),
     );
