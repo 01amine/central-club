@@ -189,7 +189,9 @@ class _SettingsScreenState extends State<SettingsScreen>
 
             // Profile avatar
             GestureDetector(
-              onTap: () {},
+              onTap: () {
+                Navigator.pushNamed(context, '/profile');
+              },
               child: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
@@ -301,28 +303,28 @@ class _SettingsScreenState extends State<SettingsScreen>
             title: "Déconnexion",
             hasDropdown: true,
             onTap: () {
-              // Dispatch LogoutRequested event
+              
               BlocProvider.of<AuthBloc>(context).add(const LogoutRequested());
             },
           ),
-          // Listen for AuthState changes to navigate after logout
+          
           BlocListener<AuthBloc, AuthState>(
             listener: (context, state) {
               if (state is AuthInitial) {
-                // Navigate to login screen after successful logout
+                
                 Navigator.pushNamedAndRemoveUntil(
                   context,
                   '/login',
                   (route) => false,
                 );
               } else if (state is AuthError) {
-                // Optionally show an error message
+                
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(state.message)),
                 );
               }
             },
-            child: Container(), // Empty container as listener child
+            child: Container(), 
           ),
         ],
       ),

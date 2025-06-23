@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:soccer_complex/core/constants/images.dart';
+import 'package:soccer_complex/core/theme/theme.dart';
 import 'package:soccer_complex/features/history/presentation/pages/history_screen.dart';
 import 'package:soccer_complex/features/home/presentation/screens/reserving_screen.dart';
 import '../../../settings/presentation/pages/settings_screen.dart';
@@ -35,10 +36,10 @@ class HomeLayout extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               border: Border.all(
-                color: Colors.white,
+                color: AppTheme.secondaryTextColor,
                 width: 1,
               ),
-              color: Colors.black87,
+              color: AppTheme.secondaryColor,
               borderRadius: BorderRadius.circular(100),
               boxShadow: [
                 BoxShadow(

@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:soccer_complex/core/constants/images.dart';
 import 'package:soccer_complex/core/extensions/extensions.dart';
 import '../../../../core/theme/theme.dart';
-import '../../../home/presentation/cubit/bottom_navigation_cubit.dart';
 import '../../../reserve_field/domain/entities/reservation.dart';
 import '../bloc/history_bloc.dart';
 import '../../../../di/injection_container.dart';
@@ -257,7 +256,7 @@ class _HistoryScreenState extends State<HistoryScreen>
             // Profile avatar
             GestureDetector(
               onTap: () {
-                context.read<BottomNavigationCubit>().changeTab(2);
+                Navigator.pushNamed(context, '/profile');
               },
               child: Container(
                 decoration: BoxDecoration(

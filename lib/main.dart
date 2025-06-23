@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:soccer_complex/features/auth/presentation/screens/login_screen.dart';
+import 'package:soccer_complex/features/auth/presentation/screens/profile_screen.dart';
 import 'package:soccer_complex/features/auth/presentation/screens/signup_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:soccer_complex/features/history/presentation/pages/details_screen.dart';
@@ -82,7 +83,8 @@ class MyApp extends StatelessWidget {
             final args = ModalRoute.of(context)?.settings.arguments as Field?;
 
             return MatchManagementScreen(fieldType: args!);
-          }
+          },
+          '/profile': (context) => ProfileScreen(),
         },
       ),
     );
