@@ -68,18 +68,6 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
               reservationDate.isBefore(DateTime.now());
         }).toList();
         break;
-      case ReservationFilter.confirmed:
-        filteredReservations = currentReservations
-            .where((reservation) =>
-                reservation.status.toLowerCase() == 'confirmed')
-            .toList();
-        break;
-      case ReservationFilter.cancelled:
-        filteredReservations = currentReservations
-            .where((reservation) =>
-                reservation.status.toLowerCase() == 'cancelled')
-            .toList();
-        break;
     }
 
     emit(HistoryFiltered(

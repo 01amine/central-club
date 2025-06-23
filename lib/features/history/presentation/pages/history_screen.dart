@@ -21,7 +21,7 @@ class _HistoryScreenState extends State<HistoryScreen>
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  late HistoryBloc _historyBloc; // Add this line
+  late HistoryBloc _historyBloc;
 
   final TextEditingController _searchController = TextEditingController();
   bool _isSearchVisible = false;
@@ -30,7 +30,7 @@ class _HistoryScreenState extends State<HistoryScreen>
   @override
   void initState() {
     super.initState();
-    _historyBloc = sl<HistoryBloc>(); // Initialize the bloc
+    _historyBloc = sl<HistoryBloc>();
     _initializeAnimations();
     _loadReservations();
   }
@@ -82,6 +82,16 @@ class _HistoryScreenState extends State<HistoryScreen>
 
   void _searchReservations(String query) {
     _historyBloc.add(SearchReservationsEvent(query: query));
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearchVisible = !_isSearchVisible;
+      if (!_isSearchVisible) {
+        _searchController.clear();
+        _loadReservations();
+      }
+    });
   }
 
   @override
@@ -181,6 +191,28 @@ class _HistoryScreenState extends State<HistoryScreen>
 
         Row(
           children: [
+            // Search toggle button
+            GestureDetector(
+              onTap: _toggleSearch,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.cardColor.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppTheme.borderColor.withOpacity(0.5),
+                  ),
+                ),
+                child: Icon(
+                  _isSearchVisible ? Icons.close : Icons.search,
+                  color: AppTheme.primaryTextColor,
+                  size: 20,
+                ),
+              ),
+            ),
+
+            SizedBox(width: context.width * 0.03),
+
             Container(
               padding: EdgeInsets.symmetric(horizontal: context.width * 0.02),
               decoration: BoxDecoration(
@@ -315,7 +347,7 @@ class _HistoryScreenState extends State<HistoryScreen>
 
         if (_isSearchVisible) SizedBox(height: context.height * 0.02),
 
-        // Filter chips
+        // Filter chips - Only 3 filters now
         SizedBox(
           height: 40,
           child: ListView(
@@ -324,8 +356,6 @@ class _HistoryScreenState extends State<HistoryScreen>
               _buildFilterChip('Tous', ReservationFilter.all),
               _buildFilterChip('À venir', ReservationFilter.upcoming),
               _buildFilterChip('Passées', ReservationFilter.past),
-              _buildFilterChip('Confirmées', ReservationFilter.confirmed),
-              _buildFilterChip('Annulées', ReservationFilter.cancelled),
             ],
           ),
         ),
@@ -530,10 +560,6 @@ class _HistoryScreenState extends State<HistoryScreen>
         return 'Aucune réservation à venir';
       case ReservationFilter.past:
         return 'Aucune réservation passée';
-      case ReservationFilter.confirmed:
-        return 'Aucune réservation confirmée';
-      case ReservationFilter.cancelled:
-        return 'Aucune réservation annulée';
       default:
         return 'Aucune réservation trouvée';
     }
@@ -608,7 +634,7 @@ class _HistoryScreenState extends State<HistoryScreen>
     int index,
   ) {
     final isUpcoming = _isUpcomingReservation(reservation);
-    final statusColor = _getStatusColor(reservation.status);
+    final statusColor = _getStatusColor(reservation.fieldType);
 
     return AnimatedContainer(
       duration: Duration(milliseconds: 300 + (index * 100)),
@@ -692,26 +718,9 @@ class _HistoryScreenState extends State<HistoryScreen>
                                 ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: statusColor.withOpacity(0.5)),
-                      ),
-                      child: Text(
-                        _getStatusText(reservation.status),
-                        style: TextStyle(
-                          color: statusColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: context.height * 0.005),
                 Text(
                   reservation.fieldType,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -827,27 +836,12 @@ class _HistoryScreenState extends State<HistoryScreen>
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'confirmed':
+      case 'soccer':
         return Colors.green;
-      case 'cancelled':
-        return Colors.red;
-      case 'pending':
+      case 'padel':
         return Colors.orange;
       default:
         return AppTheme.secondaryTextColor;
-    }
-  }
-
-  String _getStatusText(String status) {
-    switch (status.toLowerCase()) {
-      case 'confirmed':
-        return 'Confirmé';
-      case 'cancelled':
-        return 'Annulé';
-      case 'pending':
-        return 'En attente';
-      default:
-        return status;
     }
   }
 }

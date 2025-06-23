@@ -34,6 +34,4 @@ enum ReservationFilter {
   all,
   upcoming,
   past,
-  confirmed,
-  cancelled,
 }
